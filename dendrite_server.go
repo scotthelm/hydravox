@@ -1,12 +1,16 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/boltdb/bolt"
+	"github.com/gorilla/mux"
 )
 
 type DendriteServer struct {
-	Port string
+	Port   string
+	DBFile string
+	DB     *bolt.DB
 }
 
 func (ds *DendriteServer) NewRouter() *mux.Router {

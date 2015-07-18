@@ -16,6 +16,7 @@ type Content struct {
 	SubmittedAt time.Time `json:"submitted_at"`
 	Votes       []Vote    `json:"votes"`
 	Comments    []Comment `json:"comments"`
+	Tags        []string  `json:"tags"`
 }
 
 type Vote struct {

@@ -15,4 +15,5 @@ type Routes []Route
 
 var routes = Routes{
 	Route{"Index", "GET", "/", ApiRootHandler},
+	Route{"ContentCreate", "POST", "/content", ContentCreateHandler},
 }

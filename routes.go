@@ -14,6 +14,7 @@ type Route struct {
 type Routes []Route
 
 var routes = Routes{
-	Route{"Index", "GET", "/", ApiRootHandler},
+	Route{"Index", "GET", "/", Index},
+	Route{"ApiIndex", "GET", "/api", ApiRootHandler},
 	Route{"ContentCreate", "POST", "/content", ContentCreateHandler},
 }

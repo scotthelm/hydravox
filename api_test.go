@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var server *DendriteServer
+// var server *DendriteServer
 var router *mux.Router
 
 func TestMain(m *testing.M) {
@@ -33,6 +33,19 @@ func TestRootHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatal("unable to create GET / request")
+	}
+	body, err := routeTest(res, req, t)
+	fmt.Println(string(body))
+	if !strings.Contains(string(body), "html") {
+		t.Error("expected body to contain 'html', got", string(body))
+	}
+}
+
+func TestApiRootHandler(t *testing.T) {
+	res := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/api", nil)
+	if err != nil {
+		t.Fatal("unable to create GET /api request")
 	}
 	body, err := routeTest(res, req, t)
 	fmt.Println(string(body))

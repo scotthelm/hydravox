@@ -1,6 +1,6 @@
 {
   "web_port" : ":7777",
   "notification_port" : ":7778",
-  "db_file" : "hydra.db",
+  "db_path" : "hydra.db",
   "node_id" : null
 }

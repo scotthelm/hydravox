@@ -16,6 +16,7 @@ type DendriteServer struct {
 	NotificationPort string
 	DBFile           string
 	NodeId           uuid.UUID
+	LogFile          string
 	DB               *bolt.DB
 	configuration    Config
 }
@@ -45,6 +46,7 @@ func (ds *DendriteServer) Configure(path string) *DendriteServer {
 	ds.DBFile = config.DBPath
 	ds.configuration = config
 	ds.NodeId = config.NodeId
+	ds.LogFile = config.LogPath
 	return ds
 }
 

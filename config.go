@@ -1,7 +1,10 @@
 package main
 
-import ()
+import "github.com/satori/go.uuid"
 
 type Config struct {
-	ServerPort string `json:"server_port"`
+	WebPort          string    `json:"web_port"`
+	NotificationPort string    `json:"notification_port"`
+	DBPath           string    `json:"db_path"`
+	NodeId           uuid.UUID `json:"node_id"`
 }

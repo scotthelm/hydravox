@@ -18,23 +18,13 @@ var server *DendriteServer
 var router *mux.Router
 
 func TestMain(m *testing.M) {
-	db, err := bolt.Open("test2.db", 0660, &bolt.Options{Timeout: 1 * time.Second})
+	server = new(DendriteServer).Configure("config_test.json")
+	db, err := bolt.Open(server.DBFile, 0660, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		fmt.Println("the error is: ", err)
 	}
-	fmt.Println("thist is db", db)
-	server = new(DendriteServer)
-	server.Port = ":7778"
-	server.DBFile = "test2.db"
 	server.DB = db
 	router = server.NewRouter()
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("MyBucket"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
 	os.Exit(m.Run())
 }
 

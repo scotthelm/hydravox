@@ -1,1 +1,1 @@
-{"web_port":":7777","notification_port":":7778","db_path":"hydra.db","node_id":"10047b13-3172-444c-90d1-a3ec0f1d5c01","log_path":"hydra.log"}
+{"web_port":":7777","notification_port":":7778","db_path":"hydra.db","node_id":"10047b13-3172-444c-90d1-a3ec0f1d5c01","log_path":"hydra.log", "name":"hydra"}

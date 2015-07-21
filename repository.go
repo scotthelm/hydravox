@@ -9,8 +9,7 @@ import (
 )
 
 type Repository struct {
-	DB      *bolt.DB
-	Buckets []*bolt.Bucket
+	DB *bolt.DB
 }
 
 func (r *Repository) InitializeBuckets() {

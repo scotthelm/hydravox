@@ -11,17 +11,17 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-type DendriteServer struct {
+type Server struct {
 	WebPort          string
 	NotificationPort string
 	DBFile           string
 	NodeId           uuid.UUID
 	LogFile          string
 	DB               *bolt.DB
-	configuration    Config
+	Config           Config
 }
 
-func (ds *DendriteServer) NewRouter() *mux.Router {
+func (ds *Server) NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	for _, r := range routes {
 		var handler http.Handler
@@ -34,17 +34,17 @@ func (ds *DendriteServer) NewRouter() *mux.Router {
 	return router
 }
 
-func NewDendriteServer() *DendriteServer {
-	return new(DendriteServer).Configure("config.json")
+func NewServer() *Server {
+	return new(Server).Configure("config.json")
 }
 
-func (ds *DendriteServer) Configure(path string) *DendriteServer {
+func (ds *Server) Configure(path string) *Server {
 	config := ReadConfiguration(path)
 	config = WriteConfigurationIfNeeded(config, path)
 	ds.WebPort = config.WebPort
 	ds.NotificationPort = config.NotificationPort
 	ds.DBFile = config.DBPath
-	ds.configuration = config
+	ds.Config = config
 	ds.NodeId = config.NodeId
 	ds.LogFile = config.LogPath
 	return ds

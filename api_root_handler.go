@@ -2,29 +2,34 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"text/template"
 
 	"github.com/GeertJohan/go.rice"
-	"github.com/boltdb/bolt"
 )
 
 func ApiRootHandler(res http.ResponseWriter, req *http.Request) {
-	r := ApiRoot{Meta: Meta{Name: "dendrite api", Licensing: "Creative Commons Attribution Share-Alike"}}
+	r := ApiRoot{Meta: Meta{Name: "hydravox api", Licensing: "Creative Commons Attribution Share-Alike"}}
 	json.NewEncoder(res).Encode(r)
 }
 
 func ContentCreateHandler(res http.ResponseWriter, req *http.Request) {
-	server.DB.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("MyBucket"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-	res.Write([]byte("{\"id\" : \"1\"}"))
+	r := Repository{server.DB, server.Config}
+	content := Content{}
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&content)
+
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	content, err = r.CreateContent(content)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(res).Encode(content)
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {

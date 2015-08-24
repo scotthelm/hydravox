@@ -12,10 +12,10 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-var server *DendriteServer
+var server *Server
 
 func main() {
-	server = new(DendriteServer).Configure("config.json")
+	server = new(Server).Configure("config.json")
 
 	f, err := os.OpenFile(server.LogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {

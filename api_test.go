@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -12,13 +15,14 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
+	"github.com/satori/go.uuid"
 )
 
-// var server *DendriteServer
+// var server *Server
 var router *mux.Router
 
 func TestMain(m *testing.M) {
-	server = new(DendriteServer).Configure("config_test.json")
+	server = new(Server).Configure("config_test.json")
 	db, err := bolt.Open(server.DBFile, 0660, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		fmt.Println("the error is: ", err)
@@ -55,12 +59,18 @@ func TestApiRootHandler(t *testing.T) {
 }
 
 func TestCreateContent(t *testing.T) {
+	url, err := url.Parse("https://google.com")
+	content := Content{Title: "Title test api call", Body: "This is a test", Url: *url}
+	content.Id = uuid.NewV4()
+	json, err := json.Marshal(content)
+	reader := bytes.NewReader([]byte(json))
 	res := httptest.NewRecorder()
-	req, err := http.NewRequest("POST", "/content", nil)
+	req, err := http.NewRequest("POST", "/content", reader)
 	if err != nil {
 		t.Fatal("unable to create POST /content request")
 	}
 	body, err := routeTest(res, req, t)
+	fmt.Println("body: ", string(body))
 	if !strings.Contains(string(body), "id") {
 		t.Error("expected body to contain 'id', got", string(body))
 	}
@@ -76,4 +86,42 @@ func routeTest(res *httptest.ResponseRecorder, req *http.Request, t *testing.T) 
 		t.Fatal("unable to read body")
 	}
 	return body, err
+}
+
+func TestScore(t *testing.T) {
+	c := new(Content)
+	c.Id = uuid.NewV4()
+	subAt := time.Now()
+	subAt = subAt.Add(-time.Hour * 1)
+	c.SubmittedAt = subAt
+	c.addVotes(200, 100)
+	if c.Score() != 70 {
+		t.Error("Expected 70, got ", c.Score())
+	}
+}
+
+func TestUpVotes(t *testing.T) {
+	c := new(Content)
+	c.Id = uuid.NewV4()
+	c.addVotes(200, 100)
+	if c.UpVotes() != 200 {
+		t.Error("Expected 200, got ", c.UpVotes())
+	}
+}
+
+func TestDownVotes(t *testing.T) {
+	c := new(Content)
+	c.Id = uuid.NewV4()
+	c.addVotes(200, 100)
+	if c.DownVotes() != 100 {
+		t.Error("Expected 100, got ", c.DownVotes())
+	}
+}
+
+func (c *Content) addVotes(positive int, negative int) {
+	votes := make([]Vote, positive+negative)
+	for v := 0; v < positive+negative; v++ {
+		votes[v].Positive = v > negative-1
+	}
+	c.Votes = votes
 }

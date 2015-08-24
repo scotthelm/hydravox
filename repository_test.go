@@ -8,19 +8,19 @@ import (
 
 // repository should have a db
 func TestRepositoryDatabase(t *testing.T) {
-	_ = Repository{server.DB}
+	_ = Repository{server.DB, server.Config}
 }
 
 // repository should have a set of buckets
 func TestRepositoryBuckets(t *testing.T) {
-	r := Repository{server.DB}
+	r := Repository{server.DB, server.Config}
 	r.InitializeBuckets()
 	fmt.Println(r)
 }
 
 // repository should be able to create content
 func TestRepositoryCreateContent(t *testing.T) {
-	r := Repository{server.DB}
+	r := Repository{server.DB, server.Config}
 	content, err := r.CreateContent(
 		Content{
 			Title:       "Test",

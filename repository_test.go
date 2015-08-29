@@ -21,7 +21,7 @@ func TestRepositoryBuckets(t *testing.T) {
 // repository should be able to create content
 func TestRepositoryCreateContent(t *testing.T) {
 	r := Repository{server.DB, server.Config}
-	content, err := r.CreateContent(
+	result := r.CreateContent(
 		Content{
 			Title:       "Test",
 			Body:        "This is a test.",
@@ -29,8 +29,8 @@ func TestRepositoryCreateContent(t *testing.T) {
 			SubmittedAt: time.Now(),
 			Tags:        []string{"Test"},
 		})
-	if err != nil {
-		t.Error("Error creating content", err)
+	if result.Successful == false {
+		t.Error("Error creating content", result.Errors)
 	}
-	fmt.Println("test content: ", content)
+	fmt.Println("test content: ", result.Content)
 }

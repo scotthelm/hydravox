@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"text/template"
@@ -24,9 +25,9 @@ func ContentCreateHandler(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	content, err = r.CreateContent(content)
-	if err != nil {
-		http.Error(res, err.Error(), http.StatusInternalServerError)
+	result := r.CreateContent(content)
+	if result.Successful == false {
+		http.Error(res, fmt.Sprintf("%s", result.Errors), http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(res).Encode(content)

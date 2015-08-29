@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/url"
 	"time"
 
@@ -71,6 +72,11 @@ func (c *Content) DownVotes() int {
 		}
 	}
 	return voteCounter
+}
+
+func (c *Content) AsJson() []byte {
+	value, _ := json.Marshal(c)
+	return value
 }
 
 // Id is a concatenation of ContentId and CommentId

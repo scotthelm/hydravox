@@ -65,9 +65,9 @@ func TestCreateContent(t *testing.T) {
 	json, err := json.Marshal(content)
 	reader := bytes.NewReader([]byte(json))
 	res := httptest.NewRecorder()
-	req, err := http.NewRequest("POST", "/content", reader)
+	req, err := http.NewRequest("POST", "/api/content", reader)
 	if err != nil {
-		t.Fatal("unable to create POST /content request")
+		t.Fatal("unable to create POST /api/content request")
 	}
 	body, err := routeTest(res, req, t)
 	fmt.Println("body: ", string(body))

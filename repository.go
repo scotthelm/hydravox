@@ -2,8 +2,10 @@ package main
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/satori/go.uuid"
@@ -25,7 +27,15 @@ type ContentActor func(ContentIngestionResult) ContentIngestionResult
 
 func (r *Repository) InitializeBuckets() {
 	r.DB.Update(func(tx *bolt.Tx) error {
-		for _, bucket := range []string{"Content", "Nodes", "Timeline", "Spam", "Quarantine", "Tags", "Sums"} {
+		for _, bucket := range []string{
+			"Content",
+			"Nodes",
+			"Timeline",
+			"Spam",
+			"Quarantine",
+			"Tags",
+			"Sums",
+		} {
 			_, err := tx.CreateBucketIfNotExists([]byte(bucket))
 			if err != nil {
 				return fmt.Errorf("create bucket: %s", err)
@@ -38,7 +48,7 @@ func (r *Repository) InitializeBuckets() {
 func (r *Repository) EnsureNotAlreadyPresent(cir ContentIngestionResult) ContentIngestionResult {
 	_ = r.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Sums"))
-		contentId := b.Get([]byte(sum(cir.Content)))
+		contentId := b.Get([]byte(sum(contentOnly(cir.Content))))
 		cir.Successful = (contentId == nil)
 		return nil
 	})
@@ -68,10 +78,10 @@ func (r *Repository) EnsurePosterId(cir ContentIngestionResult) ContentIngestion
 	}
 	return cir
 }
-func (r *Repository) ContentSummer(cir ContentIngestionResult) ContentIngestionResult {
+func (r *Repository) Sum(cir ContentIngestionResult) ContentIngestionResult {
 	err := r.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Sums"))
-		err := b.Put([]byte(sum(cir.Content)), cir.Content.Id.Bytes())
+		err := b.Put([]byte(sum(contentOnly(cir.Content))), cir.Content.Id.Bytes())
 		cir.Successful = (err == nil)
 		return err
 	})
@@ -125,21 +135,49 @@ func (r *Repository) Tag(cir ContentIngestionResult) ContentIngestionResult {
 }
 
 func (r *Repository) CreateContent(content Content) ContentIngestionResult {
+	content.Votes = nil
+	content.Comments = nil
 	cir := ContentIngestionResult{Content: content, Successful: true}
-
-	cir = r.EnsurePosterId(r.EnsureId(cir))
-	// // 3. sum it
-	if r.PredictNotMalicious(r.PredictNotSpam(r.EnsureNotAlreadyPresent(cir))).Successful {
-		cir = r.Timeline(r.Tag(r.Persist(cir)))
+	if r.EnsureNotAlreadyPresent(cir).Successful {
+		cir = r.EnsurePosterId(r.EnsureId(cir))
+		// // 3. sum it
+		if r.PredictNotMalicious(r.PredictNotSpam(cir)).Successful {
+			cir = r.Timeline(r.Tag(r.Persist(r.Sum(cir))))
+		}
 	}
 	return cir
 }
 
 func (r *Repository) Timeline(cir ContentIngestionResult) ContentIngestionResult {
+	arry, _ := json.Marshal([]string{cir.Content.Id.String()})
+	timeKey := []byte(time.Now().Format(time.RFC3339Nano))
+	var err error
+	_ = r.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Timeline"))
+		// see if the id exists
+		contentIds := b.Get(timeKey)
+		if contentIds == nil {
+			b.Put(timeKey, arry)
+		} else {
+			var ids []string
+			json.Unmarshal(contentIds, &ids)
+			ids = append(ids, cir.Content.Id.String())
+			idsArry, _ := json.Marshal([]string{cir.Content.Id.String()})
+			err = b.Put(timeKey, idsArry)
+		}
+		return err
+	})
 	return cir
 }
 
-func sum(c Content) string {
-	hash := fmt.Sprintf("%x", md5.Sum(c.AsJson()))
-	return hash
+func sum(c Content) []byte {
+	arry := md5.Sum(c.AsJson())
+	return arry[:]
+}
+func contentOnly(c Content) Content {
+	return Content{
+		Title: c.Title,
+		Body:  c.Body,
+		Url:   c.Url,
+	}
 }

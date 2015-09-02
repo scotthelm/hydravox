@@ -39,7 +39,6 @@ func TestRootHandler(t *testing.T) {
 		t.Fatal("unable to create GET / request")
 	}
 	body, err := routeTest(res, req, t)
-	fmt.Println(string(body))
 	if !strings.Contains(string(body), "html") {
 		t.Error("expected body to contain 'html', got", string(body))
 	}
@@ -52,7 +51,6 @@ func TestApiRootHandler(t *testing.T) {
 		t.Fatal("unable to create GET /api request")
 	}
 	body, err := routeTest(res, req, t)
-	fmt.Println(string(body))
 	if !strings.Contains(string(body), "api") {
 		t.Error("expected body to contain 'api', got", string(body))
 	}
@@ -61,7 +59,6 @@ func TestApiRootHandler(t *testing.T) {
 func TestCreateContent(t *testing.T) {
 	url, err := url.Parse("https://google.com")
 	content := Content{Title: "Title test api call", Body: "This is a test", Url: *url}
-	content.Id = uuid.NewV4()
 	json, err := json.Marshal(content)
 	reader := bytes.NewReader([]byte(json))
 	res := httptest.NewRecorder()
@@ -70,7 +67,6 @@ func TestCreateContent(t *testing.T) {
 		t.Fatal("unable to create POST /api/content request")
 	}
 	body, err := routeTest(res, req, t)
-	fmt.Println("body: ", string(body))
 	if !strings.Contains(string(body), "id") {
 		t.Error("expected body to contain 'id', got", string(body))
 	}

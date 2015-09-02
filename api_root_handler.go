@@ -30,7 +30,7 @@ func ContentCreateHandler(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, fmt.Sprintf("%s", result.Errors), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(res).Encode(content)
+	json.NewEncoder(res).Encode(result.Content)
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {

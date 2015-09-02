@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/boltdb/bolt"
 )
 
 // repository should have a db
@@ -15,7 +17,6 @@ func TestRepositoryDatabase(t *testing.T) {
 func TestRepositoryBuckets(t *testing.T) {
 	r := Repository{server.DB, server.Config}
 	r.InitializeBuckets()
-	fmt.Println(r)
 }
 
 // repository should be able to create content
@@ -32,5 +33,19 @@ func TestRepositoryCreateContent(t *testing.T) {
 	if result.Successful == false {
 		t.Error("Error creating content", result.Errors)
 	}
-	fmt.Println("test content: ", result.Content)
+	checkResults(r, []byte("Content"))
+	checkResults(r, []byte("Sums"))
+	checkResults(r, []byte("Timeline"))
+	checkResults(r, []byte("Tags"))
+}
+
+func checkResults(r Repository, bucketName []byte) {
+	_ = r.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucketName)
+		b.ForEach(func(k, v []byte) error {
+			fmt.Printf("value for %v:%v = %v\n----------------\n", string(bucketName), string(k), string(v))
+			return nil
+		})
+		return nil
+	})
 }

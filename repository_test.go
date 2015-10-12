@@ -39,6 +39,22 @@ func TestRepositoryCreateContent(t *testing.T) {
 	checkResults(r, []byte("Tags"))
 }
 
+func TestRepoGetContent(t *testing.T) {
+	r := Repository{server.DB, server.Config}
+	result := r.CreateContent(
+		Content{
+			Title:       "Test",
+			Body:        "This is a test.",
+			PosterId:    server.NodeId,
+			SubmittedAt: time.Now(),
+			Tags:        []string{"Test"},
+		})
+	content := r.GetContentFull(result.Content.Id.String())
+	if content.Id != result.Content.Id {
+		t.Error("Error : content get not correct.")
+	}
+}
+
 func checkResults(r Repository, bucketName []byte) {
 	_ = r.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketName)

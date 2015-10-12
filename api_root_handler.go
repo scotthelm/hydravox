@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/GeertJohan/go.rice"
+	"github.com/gorilla/mux"
 )
 
 func ApiRootHandler(res http.ResponseWriter, req *http.Request) {
@@ -31,6 +32,12 @@ func ContentCreateHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	json.NewEncoder(res).Encode(result.Content)
+}
+
+func CommentCreateHandler(res http.ResponseWriter, req *http.Request) {
+	r := Repository{server.DB, server.Config}
+	vars := mux.Vars(req)
+	json.NewEncoder(res).Encode(r.GetContent(vars["content_id"]))
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {

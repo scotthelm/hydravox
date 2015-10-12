@@ -17,4 +17,5 @@ var routes = Routes{
 	Route{"Index", "GET", "/", Index},
 	Route{"ApiIndex", "GET", "/api", ApiRootHandler},
 	Route{"ContentCreate", "POST", "/api/content", ContentCreateHandler},
+	Route{"CreateComment", "POST", "/api/content/{content_id}/comment", CommentCreateHandler},
 }

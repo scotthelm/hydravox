@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/json"
 	"errors"
@@ -35,6 +36,8 @@ func (r *Repository) InitializeBuckets() {
 			"Quarantine",
 			"Tags",
 			"Sums",
+			"Votes",
+			"Comments",
 		} {
 			_, err := tx.CreateBucketIfNotExists([]byte(bucket))
 			if err != nil {
@@ -179,5 +182,46 @@ func contentOnly(c Content) Content {
 		Title: c.Title,
 		Body:  c.Body,
 		Url:   c.Url,
+	}
+}
+func (r *Repository) GetContent(id string) Content {
+	c := Content{}
+	_ = r.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Content"))
+		json.Unmarshal(b.Get([]byte(id)), &c)
+		return nil
+	})
+	return c
+}
+
+func (r *Repository) GetContentFull(id string) Content {
+	content := Content{}
+	_ = r.DB.View(func(tx *bolt.Tx) error {
+		cb := tx.Bucket([]byte("Content"))
+		json.Unmarshal(cb.Get([]byte(id)), &content)
+		r.GetVotes(&content, tx)
+		r.GetComments(&content, tx)
+		return nil
+
+	})
+	return content
+}
+
+func (r *Repository) GetVotes(content *Content, tx *bolt.Tx) {
+	c := tx.Bucket([]byte("Votes")).Cursor()
+	prefix := content.Id.Bytes()
+	for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+		vote := Vote{}
+		_ = json.Unmarshal(v, &vote)
+		_ = append(content.Votes, vote)
+	}
+}
+func (r *Repository) GetComments(content *Content, tx *bolt.Tx) {
+	c := tx.Bucket([]byte("Comments")).Cursor()
+	prefix := content.Id.Bytes()
+	for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+		comment := Comment{}
+		_ = json.Unmarshal(v, &comment)
+		_ = append(content.Comments, comment)
 	}
 }

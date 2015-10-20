@@ -48,6 +48,20 @@ func (r *Repository) InitializeBuckets() {
 	})
 }
 
+func (r *Repository) CheckSumId(cir ContentIngestionResult) ContentIngestionResult {
+	_ = r.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Sums"))
+		contentId := b.Get([]byte(sum(contentOnly(cir.Content))))
+		uid, err := uuid.FromBytes(contentId)
+		if err != nil {
+			panic(err)
+		}
+		cir.Content.Id = uid
+		return nil
+	})
+
+	return cir
+}
 func (r *Repository) EnsureNotAlreadyPresent(cir ContentIngestionResult) ContentIngestionResult {
 	_ = r.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Sums"))
@@ -141,6 +155,7 @@ func (r *Repository) CreateContent(content Content) ContentIngestionResult {
 	content.Votes = nil
 	content.Comments = nil
 	cir := ContentIngestionResult{Content: content, Successful: true}
+	cir = r.CheckSumId(cir)
 	if r.EnsureNotAlreadyPresent(cir).Successful {
 		cir = r.EnsurePosterId(r.EnsureId(cir))
 		// // 3. sum it
@@ -188,7 +203,8 @@ func (r *Repository) GetContent(id string) Content {
 	c := Content{}
 	_ = r.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Content"))
-		json.Unmarshal(b.Get([]byte(id)), &c)
+		uid, _ := uuid.FromString(id)
+		json.Unmarshal(b.Get(uid.Bytes()), &c)
 		return nil
 	})
 	return c
@@ -198,9 +214,11 @@ func (r *Repository) GetContentFull(id string) Content {
 	content := Content{}
 	_ = r.DB.View(func(tx *bolt.Tx) error {
 		cb := tx.Bucket([]byte("Content"))
-		json.Unmarshal(cb.Get([]byte(id)), &content)
+		uid, _ := uuid.FromString(id)
+		json.Unmarshal(cb.Get(uid.Bytes()), &content)
 		r.GetVotes(&content, tx)
 		r.GetComments(&content, tx)
+		content.Score = content.GetScore()
 		return nil
 
 	})
@@ -216,6 +234,7 @@ func (r *Repository) GetVotes(content *Content, tx *bolt.Tx) {
 		_ = append(content.Votes, vote)
 	}
 }
+
 func (r *Repository) GetComments(content *Content, tx *bolt.Tx) {
 	c := tx.Bucket([]byte("Comments")).Cursor()
 	prefix := content.Id.Bytes()
@@ -224,4 +243,10 @@ func (r *Repository) GetComments(content *Content, tx *bolt.Tx) {
 		_ = json.Unmarshal(v, &comment)
 		_ = append(content.Comments, comment)
 	}
+}
+
+func (r *Repository) CreateVote(vote *Vote, tx *bolt.Tx) {
+	_ = r.DB.Update(func(tx *bolt.Tx) error {
+		return nil
+	})
 }

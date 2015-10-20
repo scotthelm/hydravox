@@ -24,6 +24,7 @@ type Content struct {
 	SpamScore     float64   `json:"spam_score"`
 	IsSpam        bool      `json:"is_spam"`
 	IsQuarantined bool      `json:"is_quarantined"`
+	Score         int
 }
 
 // Id is a concatenation of ContentId and VoteId
@@ -36,7 +37,7 @@ type Vote struct {
 	VoteId    uuid.UUID `json:"vote_id"`
 }
 
-func (c *Content) Score() int {
+func (c *Content) GetScore() int {
 	var ups float64
 	var downs float64
 	submitted_at := float64(c.SubmittedAt.Unix())

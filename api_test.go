@@ -72,6 +72,20 @@ func TestCreateContent(t *testing.T) {
 	}
 }
 
+func TestCreateVote(t *testing.T) {
+	_, result := createTestContent()
+	voteId := uuid.NewV4()
+	v := Vote{
+		Type:      "Content",
+		ContentId: result.Content.Id,
+		VoteId:    voteId,
+		PosterId:  server.Config.NodeId,
+		Positive:  true,
+		Id:        fmt.Sprintf("%s:%s", result.Content.Id.String(), voteId.String()),
+	}
+	fmt.Println(v)
+}
+
 func routeTest(res *httptest.ResponseRecorder, req *http.Request, t *testing.T) ([]byte, error) {
 	router.ServeHTTP(res, req)
 	if res.Code != 200 {
@@ -91,8 +105,8 @@ func TestScore(t *testing.T) {
 	subAt = subAt.Add(-time.Hour * 1)
 	c.SubmittedAt = subAt
 	c.addVotes(200, 100)
-	if c.Score() != 70 {
-		t.Error("Expected 70, got ", c.Score())
+	if c.GetScore() != 70 {
+		t.Error("Expected 70, got ", c.GetScore())
 	}
 }
 

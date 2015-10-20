@@ -40,6 +40,16 @@ func TestRepositoryCreateContent(t *testing.T) {
 }
 
 func TestRepoGetContent(t *testing.T) {
+	r, result := createTestContent()
+	fmt.Println("***************************", result.Content.Id)
+	content := r.GetContentFull(result.Content.Id.String())
+	fmt.Println("%%%%%%%%%%%%%%%%%%%%%%%%%%%", content.Id)
+	if content.Id != result.Content.Id {
+		t.Error("Error : content get not correct.")
+	}
+}
+
+func createTestContent() (Repository, ContentIngestionResult) {
 	r := Repository{server.DB, server.Config}
 	result := r.CreateContent(
 		Content{
@@ -49,17 +59,14 @@ func TestRepoGetContent(t *testing.T) {
 			SubmittedAt: time.Now(),
 			Tags:        []string{"Test"},
 		})
-	content := r.GetContentFull(result.Content.Id.String())
-	if content.Id != result.Content.Id {
-		t.Error("Error : content get not correct.")
-	}
+	return r, result
 }
 
 func checkResults(r Repository, bucketName []byte) {
 	_ = r.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketName)
 		b.ForEach(func(k, v []byte) error {
-			fmt.Printf("value for %v:%v = %v\n----------------\n", string(bucketName), string(k), string(v))
+			fmt.Printf("value for %s:%s = %s\n----------------\n", bucketName, k, v)
 			return nil
 		})
 		return nil

@@ -234,21 +234,22 @@ func (r *Repository) GetContentFull(id string) Content {
 
 func (r *Repository) GetVotes(content *Content, tx *bolt.Tx) {
 	c := tx.Bucket([]byte("Votes")).Cursor()
-	prefix := content.Id.Bytes()
+	prefix := []byte(content.Id.String())
 	for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
 		vote := Vote{}
 		_ = json.Unmarshal(v, &vote)
-		_ = append(content.Votes, vote)
+		log.Printf("found vote", vote)
+		content.Votes = append(content.Votes, vote)
 	}
 }
 
 func (r *Repository) GetComments(content *Content, tx *bolt.Tx) {
 	c := tx.Bucket([]byte("Comments")).Cursor()
-	prefix := content.Id.Bytes()
+	prefix := []byte(content.Id.String())
 	for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
 		comment := Comment{}
 		_ = json.Unmarshal(v, &comment)
-		_ = append(content.Comments, comment)
+		content.Comments = append(content.Comments, comment)
 	}
 }
 

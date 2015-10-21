@@ -60,7 +60,7 @@ func VoteCreateHandler(res http.ResponseWriter, req *http.Request) {
 func ContentGetHandler(res http.ResponseWriter, req *http.Request) {
 	r := Repository{server.DB, server.Config}
 	vars := mux.Vars(req)
-	json.NewEncoder(res).Encode(r.GetContent(vars["content_id"]))
+	json.NewEncoder(res).Encode(r.GetContentFull(vars["content_id"]))
 }
 
 func CommentCreateHandler(res http.ResponseWriter, req *http.Request) {

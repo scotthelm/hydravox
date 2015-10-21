@@ -74,16 +74,25 @@ func TestCreateContent(t *testing.T) {
 
 func TestCreateVote(t *testing.T) {
 	_, result := createTestContent()
-	voteId := uuid.NewV4()
 	v := Vote{
 		Type:      "Content",
 		ContentId: result.Content.Id,
-		VoteId:    voteId,
 		PosterId:  server.Config.NodeId,
 		Positive:  true,
-		Id:        fmt.Sprintf("%s:%s", result.Content.Id.String(), voteId.String()),
 	}
-	fmt.Println(v)
+	json, err := json.Marshal(v)
+	reader := bytes.NewReader([]byte(json))
+	res := httptest.NewRecorder()
+	path := fmt.Sprintf("/api/content/%s/votes", result.Content.Id.String())
+	fmt.Println(path)
+	req, err := http.NewRequest("POST", path, reader)
+	if err != nil {
+		t.Fatal(fmt.Sprintf("unable to create POST %s request", path))
+	}
+	body, err := routeTest(res, req, t)
+	if !strings.Contains(string(body), "id") {
+		t.Error("expected body to contain 'id', got", string(body))
+	}
 }
 
 func routeTest(res *httptest.ResponseRecorder, req *http.Request, t *testing.T) ([]byte, error) {

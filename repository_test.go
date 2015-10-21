@@ -41,9 +41,7 @@ func TestRepositoryCreateContent(t *testing.T) {
 
 func TestRepoGetContent(t *testing.T) {
 	r, result := createTestContent()
-	fmt.Println("***************************", result.Content.Id)
 	content := r.GetContentFull(result.Content.Id.String())
-	fmt.Println("%%%%%%%%%%%%%%%%%%%%%%%%%%%", content.Id)
 	if content.Id != result.Content.Id {
 		t.Error("Error : content get not correct.")
 	}

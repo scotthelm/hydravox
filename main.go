@@ -33,6 +33,8 @@ func main() {
 	server.DB = db
 	router := server.NewRouter()
 	router.PathPrefix("/templates/").Handler(templatesHandler())
+	r := Repository{server.DB, server.Config}
+	r.InitializeBuckets()
 
 	log.Fatal(http.ListenAndServe(server.WebPort, router))
 }

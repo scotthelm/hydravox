@@ -18,7 +18,7 @@ type Content struct {
 	Url           url.URL   `json:"string"`
 	PosterId      uuid.UUID `json:"poster_id"`
 	SubmittedAt   time.Time `json:"submitted_at"`
-	Tags          []string  `json:"tags"`
+	Tags          []string  `json:"tags";default []`
 	Votes         []Vote    `json:"votes"`
 	Comments      []Comment `json:"comments"`
 	SpamScore     float64   `json:"spam_score"`

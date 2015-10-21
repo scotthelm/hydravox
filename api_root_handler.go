@@ -9,6 +9,7 @@ import (
 
 	"github.com/GeertJohan/go.rice"
 	"github.com/gorilla/mux"
+	"github.com/satori/go.uuid"
 )
 
 func ApiRootHandler(res http.ResponseWriter, req *http.Request) {
@@ -32,6 +33,34 @@ func ContentCreateHandler(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	json.NewEncoder(res).Encode(result.Content)
+}
+
+func VoteCreateHandler(res http.ResponseWriter, req *http.Request) {
+	r := Repository{server.DB, server.Config}
+	vars := mux.Vars(req)
+	vote := Vote{}
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&vote)
+	contentId, _ := uuid.FromString(string(vars["content_id"]))
+	vote.ContentId = contentId
+	vote.VoteId = uuid.NewV4()
+	vote.Id = fmt.Sprintf("%s:%s", vote.ContentId, vote.VoteId)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	result, err := r.CreateVote(vote)
+	if err != nil {
+		http.Error(res, fmt.Sprintf("%s", err), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(res).Encode(result)
+}
+
+func ContentGetHandler(res http.ResponseWriter, req *http.Request) {
+	r := Repository{server.DB, server.Config}
+	vars := mux.Vars(req)
+	json.NewEncoder(res).Encode(r.GetContent(vars["content_id"]))
 }
 
 func CommentCreateHandler(res http.ResponseWriter, req *http.Request) {

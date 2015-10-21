@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -51,12 +52,18 @@ func (r *Repository) InitializeBuckets() {
 func (r *Repository) CheckSumId(cir ContentIngestionResult) ContentIngestionResult {
 	_ = r.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("Sums"))
-		contentId := b.Get([]byte(sum(contentOnly(cir.Content))))
-		uid, err := uuid.FromBytes(contentId)
-		if err != nil {
-			panic(err)
+		sum := sum(contentOnly(cir.Content))
+		log.Printf("%s", b)
+		log.Printf("%s", sum)
+		contentId := b.Get([]byte(sum))
+		if contentId != nil {
+			uid, err := uuid.FromBytes(contentId)
+			if err != nil {
+				panic(err)
+			}
+
+			cir.Content.Id = uid
 		}
-		cir.Content.Id = uid
 		return nil
 	})
 
@@ -245,8 +252,15 @@ func (r *Repository) GetComments(content *Content, tx *bolt.Tx) {
 	}
 }
 
-func (r *Repository) CreateVote(vote *Vote, tx *bolt.Tx) {
-	_ = r.DB.Update(func(tx *bolt.Tx) error {
-		return nil
+func (r *Repository) CreateVote(vote Vote) (Vote, error) {
+	vote.VoteId = uuid.NewV4()
+	vote.Id = fmt.Sprintf("%s:%s", vote.ContentId.String(), vote.VoteId.String())
+	err := r.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("Votes"))
+		j, _ := json.Marshal(vote)
+		err := b.Put([]byte(vote.Id), []byte(j))
+		return err
 	})
+
+	return vote, err
 }
